@@ -107,13 +107,13 @@ sub resolve_schema {
  # => ["int", []]
 
  my $sch = resolve_schema("posint*");
- # => ["int", {req=>1, min=>0}, {}]
+ # => ["int", [{min=>1}, {req=>1}]
 
  my $sch = resolve_schema([posint => div_by => 3]);
- # => ["int", {min=>0, div_by=>3}, {}]
+ # => ["int", {min=>1}, {div_by=>3}]
 
- my $sch = resolve_schema([array => of=>"posint*"]);
- # => ["array", {of=>["int", {req=>1, min=>0}, {}]}, {}]
+ my $sch = resolve_schema(["posint", "merge.delete.min"=>undef, div_by => 3]);
+ # => ["int", {div_by=>3}]
 
 
 =head1 DESCRIPTION
@@ -123,9 +123,16 @@ sub resolve_schema {
 
 =head2 resolve_schema([ \%opts, ] $sch) => sch
 
-Extract all subschemas found inside Sah schema C<$sch>. Schema will be
-normalized first, then schemas from all clauses which contains subschemas will
-be collected recursively.
+Resolve Sah schema, which means: 1) normalize the schema (unless
+C<schema_is_normalized> option is true, in which case schema is assumed to be
+normalized already; 2) check schema's type to see if it's the name of another
+schema (searched in C<< Sah::Schema::<name> >> module); 3) if schema's type is
+another schema then retrieve the base schema and repeat the process while
+accumulating/ and/or merging the clause sets; 4) if schema's type is a known
+builtin type, stop; 5) if schema's type is neither, die.
+
+Sah schemas can be defined in terms of other schema. The resolving process
+follows the base schema recursively until it finds a builtin type as the base.
 
 Known options:
 
