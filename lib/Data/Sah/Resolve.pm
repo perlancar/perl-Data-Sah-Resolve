@@ -44,7 +44,8 @@ sub resolve_schema {
     }
     $opts->{merge_clause_sets} //= 1;
 
-    my $res = _resolve($opts, $sch->[0], keys(%{$sch->[1]}) ? [$sch->[1]] : [], []);
+    my $seen = [];
+    my $res = _resolve($opts, $sch->[0], keys(%{$sch->[1]}) ? [$sch->[1]] : [], $seen);
 
   MERGE:
     {
@@ -93,6 +94,8 @@ sub resolve_schema {
         $res->[1] = \@clsets;
     }
 
+    $res->[2] = $seen if $opts->{return_intermediates};
+
     $res;
 }
 
@@ -123,16 +126,19 @@ sub resolve_schema {
 
 =head2 resolve_schema([ \%opts, ] $sch) => sch
 
-Resolve Sah schema, which means: 1) normalize the schema (unless
-C<schema_is_normalized> option is true, in which case schema is assumed to be
-normalized already; 2) check schema's type to see if it's the name of another
-schema (searched in C<< Sah::Schema::<name> >> module); 3) if schema's type is
-another schema then retrieve the base schema and repeat the process while
-accumulating/ and/or merging the clause sets; 4) if schema's type is a known
-builtin type, stop; 5) if schema's type is neither, die.
-
 Sah schemas can be defined in terms of other schema. The resolving process
 follows the base schema recursively until it finds a builtin type as the base.
+
+This routine: 1) normalizes the schema (unless C<schema_is_normalized> option is
+true, in which case schema is assumed to be normalized already); 2) checks
+schema's type to see if it's the name of another schema (searched in C<<
+Sah::Schema::<name> >> module); 3) if schema's type is another schema then
+retrieve the base schema and repeat the process while accumulating/ and/or
+merging the clause sets; 4) if schema's type is a known builtin type, stop; 5)
+if schema's type is neither, die.
+
+Returns C<< [base_type, clause_sets] >>. If C<return_intermediates> option is
+true, then the third elements will be the list of intermediate schema names.
 
 Known options:
 
@@ -144,6 +150,8 @@ When set to true, function will skip normalizing schema and assume input schema
 is normalized.
 
 =item * merge_clause_sets => bool (default: 1)
+
+=item * return_intermediates => bool
 
 =back
 
