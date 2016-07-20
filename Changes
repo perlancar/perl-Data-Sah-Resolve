@@ -1,5 +1,10 @@
 Revision history for Data-Sah-Resolve
 
+0.003   2016-07-20 (PERLANCAR)
+
+	- Add option: return_intermediates.
+
+
 0.002   2016-07-19 (PERLANCAR)
 
         - No functional changes.
