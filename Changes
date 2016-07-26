@@ -1,5 +1,13 @@
 Revision history for Data-Sah-Resolve
 
+0.004   2016-07-26 (PERLANCAR)
+
+        - No functional changes.
+
+        - [test] Make tests that need Data::Sah::Type::int optional, because we
+          do not depend on Data::Sah [RT#116464].
+
+
 0.003   2016-07-20 (PERLANCAR)
 
 	- Add option: return_intermediates.
