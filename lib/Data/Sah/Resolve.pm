@@ -129,19 +129,51 @@ sub resolve_schema {
 
 =head2 resolve_schema([ \%opts, ] $sch) => sch
 
-Sah schemas can be defined in terms of other schema. The resolving process
+Sah schemas can be defined in terms of other schemas. The resolving process
 follows the base schema recursively until it finds a builtin type as the base.
 
-This routine: 1) normalizes the schema (unless C<schema_is_normalized> option is
-true, in which case schema is assumed to be normalized already); 2) checks
-schema's type to see if it's the name of another schema (searched in C<<
-Sah::Schema::<name> >> module); 3) if schema's type is another schema then
-retrieve the base schema and repeat the process while accumulating/ and/or
-merging the clause sets; 4) if schema's type is a known builtin type, stop; 5)
-if schema's type is neither, die.
+This routine performs the following steps:
+
+=over
+
+=item 1. Normalize the schema
+
+Unless C<schema_is_normalized> option is true, in which case schema is assumed
+to be normalized already.
+
+=item 2. Check if the schema's type is a builtin type
+
+Currently this is done by checking if the module of the name C<<
+Data::Sah::Type::<type> >> is loadable. If it is a builtin type then we are
+done.
+
+=item 3. Check if the schema's type is the name of another schema
+
+This is done by checking if C<< Sah::Schema::<name> >> module exists and is
+loadable. If this is the case then we retrieve the base schema from the
+C<$schema> variable in the C<< Sah::Schema::<name> >> package and repeat the
+process while accumulating and/or merging the clause sets.
+
+=item 4. If schema's type is neither, we die.
+
+=back
 
 Returns C<< [base_type, clause_sets] >>. If C<return_intermediates> option is
 true, then the third elements will be the list of intermediate schema names.
+
+Example 1: C<int>.
+
+First we normalize to C<<["int",{},{}]>>. The type is C<int> and it is a builtin
+type (L<Data::Sah::Type::int> exists) so the final result is C<<["int", []]>>.
+
+Example 2: C<posint*>.
+
+First we normalize to C<<["posint",{req=>1},{}]>>. The type is C<posint> and it
+is the name of another schema (L<Sah::Schema::posint>). We retrieve the schema
+which is C<<["int", {summary=>"Positive integer (1,2,3,...)", min=>1}, {}]>>. We
+now try to resolve C<int> and find that it's a builtin type. So the final result
+is: C<<["int", [ {req=>1}, {summary=>"Positive integer (1,2,3,...)", min=>1} ]]
+>>.
 
 Known options:
 
