@@ -1,3 +1,10 @@
+0.005   2017-04-16 (PERLANCAR)
+
+	- No functional changes.
+
+	- Print the error message from require() to aid debugging.
+
+
 0.004   2016-07-26 (PERLANCAR)
 
         - No functional changes.
