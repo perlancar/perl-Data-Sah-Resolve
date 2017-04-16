@@ -1,3 +1,9 @@
+0.006   2017-04-16 (PERLANCAR)
+
+	- Improve checking builtin Sah type: check how require()
+	  Data::Sah::Type::* fails.
+
+
 0.005   2017-04-16 (PERLANCAR)
 
 	- No functional changes.
