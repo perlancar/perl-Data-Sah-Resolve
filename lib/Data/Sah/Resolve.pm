@@ -26,7 +26,7 @@ sub _resolve {
     my $schmod = "Sah::Schema::$type";
     (my $schmod_pm = "$schmod.pm") =~ s!::!/!g;
     eval { require $schmod_pm; 1 };
-    die "Not a known type/schema name '$type'" if $@;
+    die "Not a known type/schema name '$type' ($@)" if $@;
     no strict 'refs';
     my $sch2 = ${"$schmod\::schema"};
     die "BUG: Schema module $schmod doesn't contain \$schema" unless $sch2;
