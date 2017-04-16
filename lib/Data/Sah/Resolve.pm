@@ -19,8 +19,11 @@ sub _resolve {
 
     (my $typemod_pm = "Data/Sah/Type/$type.pm") =~ s!::!/!g;
     eval { require $typemod_pm; 1 };
+    my $err = $@;
     # already a builtin-type, so just return the schema's type name & clause set
-    return [$type, $clsets] unless $@;
+    return [$type, $clsets] unless $err;
+    die "Can't check whether $type is a builtin Sah type: $err"
+        unless $err =~ /\ACan't locate/;
 
     # not a type, try a schema under Sah::Schema
     my $schmod = "Sah::Schema::$type";
