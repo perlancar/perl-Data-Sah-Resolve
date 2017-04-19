@@ -165,17 +165,18 @@ true, then the third elements will be the list of intermediate schema names.
 
 Example 1: C<int>.
 
-First we normalize to C<<["int",{},{}]>>. The type is C<int> and it is a builtin
-type (L<Data::Sah::Type::int> exists) so the final result is C<<["int", []]>>.
+First we normalize to C<< ["int",{},{}] >>. The type is C<int> and it is a
+builtin type (L<Data::Sah::Type::int> exists) so the final result is C<< ["int",
+[]] >>.
 
 Example 2: C<posint*>.
 
-First we normalize to C<<["posint",{req=>1},{}]>>. The type is C<posint> and it
-is the name of another schema (L<Sah::Schema::posint>). We retrieve the schema
-which is C<<["int", {summary=>"Positive integer (1,2,3,...)", min=>1}, {}]>>. We
-now try to resolve C<int> and find that it's a builtin type. So the final result
-is: C<<["int", [ {req=>1}, {summary=>"Positive integer (1,2,3,...)", min=>1} ]]
->>.
+First we normalize to C<< ["posint",{req=>1},{}] >>. The type is C<posint> and
+it is the name of another schema (L<Sah::Schema::posint>). We retrieve the
+schema which is C<< ["int", {summary=>"Positive integer (1,2,3,...)", min=>1},
+{}] >>. We now try to resolve C<int> and find that it's a builtin type. So the
+final result is: C<< ["int", [ {req=>1}, {summary=>"Positive integer
+(1,2,3,...)", min=>1} ]] >>.
 
 Known options:
 
