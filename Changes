@@ -1,3 +1,10 @@
+0.008   2021-02-27  Released-By: PERLANCAR; Urgency: medium
+
+	- [test] Re-pass tests by using Test::Deep to ignore schema's
+	  extraneous properties like description and examples (thanks
+	  SREZIC) [RT#134410].
+
+
 0.007   2017-04-19  Released-By: PERLANCAR
 
 	- No functional changes.
