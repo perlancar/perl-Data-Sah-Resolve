@@ -21,6 +21,18 @@ sub _resolve {
 
     push @{$res->[2]{intermediates}}, $type;
 
+    # check whether $type is a built-in Sah type
+    (my $typemod_pm = "Data/Sah/Type/$type.pm") =~ s!::!/!g;
+    eval { require $typemod_pm; 1 };
+    my $err = $@;
+    unless ($err) {
+        # already a builtin-type, so we stop here
+        $res->[2]{base_schema_is_type} = 1;
+        return;
+    }
+    die "Cannot resolve Sah schema: can't check whether $type is a builtin Sah type: $err"
+        unless $err =~ /\ACan't locate/;
+
     if ($opts->{stop_after_no_merge_keys} &&
             (!defined($opts->{min_steps}) || @{$res->[2]{intermediates}} > $opts->{min_steps})) {
         my $has_merge_mode_keys;
@@ -33,17 +45,6 @@ sub _resolve {
         }
         return unless $has_merge_mode_keys;
     }
-
-    (my $typemod_pm = "Data/Sah/Type/$type.pm") =~ s!::!/!g;
-    eval { require $typemod_pm; 1 };
-    my $err = $@;
-    unless ($err) {
-        # already a builtin-type, so we stop here
-        $res->[2]{base_schema_is_type} = 1;
-        return;
-    }
-    die "Cannot resolve Sah schema: can't check whether $type is a builtin Sah type: $err"
-        unless $err =~ /\ACan't locate/;
 
     # not a type, try a schema under Sah::Schema
     my $schmod = "Sah::Schema::$type";

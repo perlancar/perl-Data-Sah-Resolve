@@ -103,6 +103,12 @@ subtest "tests that need Data-Sah distribution" => sub {
                 result => ["posint", [superhashof({div_by=>2}), superhashof({min=>10})], {base_schema_is_type=>0, intermediates=>["poseven","posint"]}],
             );
             test_resolve(
+                name   => "opt:stop_after_no_merge_keys=1, min_steps=2",
+                schema => ["poseven", min=>10],
+                opts   => {stop_after_no_merge_keys=>1, min_steps=>2},
+                result => ["int", [superhashof({min=>1}), superhashof({div_by=>2}), superhashof({min=>10})], {base_schema_is_type=>1, intermediates=>["poseven","posint","int"]}],
+            );
+            test_resolve(
                 name   => "opt:stop_after_no_merge_keys=1 (but has merge keys)",
                 schema => ["example::has_merge", {"merge.normal.div_by"=>3}],
                 opts   => {stop_after_no_merge_keys=>1},
