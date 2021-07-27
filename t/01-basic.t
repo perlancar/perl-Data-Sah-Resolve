@@ -3,13 +3,13 @@
 use 5.010001;
 use strict;
 use warnings;
-
-use Data::Dmp;
-use Data::Sah::Resolve qw(resolve_schema);
+use Test::Deep;
 use Test::Exception;
 use Test::More 0.98;
 use Test::Needs;
-use Test::Deep;
+
+use Data::Dmp;
+use Data::Sah::Resolve qw(resolve_schema);
 
 subtest "unknown" => sub {
     test_resolve(
@@ -41,46 +41,46 @@ subtest "Data::Sah" => sub {
 
     test_resolve(
         schema => "int",
-        result => ["int", []],
+        result => ["int", [], {intermediates=>["int"]}],
     );
     test_resolve(
         schema => ["int"],
-        result => ["int", []],
+        result => ["int", [], {intermediates=>["int"]}],
     );
     test_resolve(
         schema => ["int", {}],
-        result => ["int", []],
+        result => ["int", [], {intermediates=>["int"]}],
     );
     test_resolve(
         schema => ["int", min=>2],
-        result => ["int", [{min=>2}]],
+        result => ["int", [{min=>2}], {intermediates=>["int"]}],
     );
 
     test_resolve(
         schema => "posint",
-        result => ["int", [superhashof({summary=>"Positive integer (1, 2, ...)", min=>1})]],
+        result => ["int", [superhashof({min=>1})], {intermediates=>["posint", "int"]}],
     );
     test_resolve(
         schema => ["posint", min=>10],
-        result => ["int", [superhashof({summary=>"Positive integer (1, 2, ...)", min=>1}), {min=>10}]],
+        result => ["int", [superhashof({min=>1}), {min=>10}], {intermediates=>["posint","int"]}],
     );
     test_resolve(
         schema => ["posint", "merge.delete.min"=>undef],
-        result => ["int", [superhashof({summary=>"Positive integer (1, 2, ...)"})]],
+        result => ["int", [superhashof({})], {intermediates=>["posint","int"]}],
     );
 
     test_resolve(
         schema => ["poseven"],
-        result => ["int", [superhashof({summary=>"Positive integer (1, 2, ...)", min=>1}), superhashof({summary=>"Positive even number", div_by=>2})]],
+        result => ["int", [superhashof({ min=>1}), superhashof({div_by=>2})], {intermediates=>["poseven","posint","int"]}],
     );
     test_resolve(
         schema => ["poseven", min=>10, div_by=>3],
-        result => ["int", [superhashof({summary=>"Positive integer (1, 2, ...)", min=>1}), superhashof({summary=>"Positive even number", div_by=>2}), superhashof({min=>10, div_by=>3})]],
+        result => ["int", [superhashof({min=>1}), superhashof({div_by=>2}), superhashof({min=>10, div_by=>3})], {intermediates=>["poseven","posint","int"]}],
     );
     test_resolve(
         name   => "2 merges",
         schema => ["example::has_merge", {"merge.normal.div_by"=>3}],
-        result => ["int", [superhashof({summary=>"Even integer", div_by=>3})]],
+        result => ["int", [superhashof({div_by=>3})], {intermediates=>["example::has_merge","posint","int"]}],
     );
 };
 

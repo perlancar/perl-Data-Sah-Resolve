@@ -1,6 +1,8 @@
 package Data::Sah::Resolve;
 
+# AUTHORITY
 # DATE
+# DIST
 # VERSION
 
 use 5.010001;
@@ -99,7 +101,7 @@ sub resolve_schema {
         $res->[1] = \@clsets;
     }
 
-    $res->[2] = $seen if $opts->{return_intermediates};
+    $res->[2]{intermediates} = $seen;
 
     $res;
 }
@@ -160,23 +162,21 @@ process while accumulating and/or merging the clause sets.
 
 =back
 
-Returns C<< [base_type, clause_sets] >>. If C<return_intermediates> option is
-true, then the third elements will be the list of intermediate schema names.
+Returns C<< [$base_type, \@clause_sets, \%additional] >>.
 
 Example 1: C<int>.
 
-First we normalize to C<< ["int",{},{}] >>. The type is C<int> and it is a
-builtin type (L<Data::Sah::Type::int> exists) so the final result is C<< ["int",
-[]] >>.
+First we normalize to C<< ["int",{}] >>. The type is C<int> and it is a builtin
+type (L<Data::Sah::Type::int> exists) so the final result is C<< ["int", []] >>.
 
 Example 2: C<posint*>.
 
-First we normalize to C<< ["posint",{req=>1},{}] >>. The type is C<posint> and
-it is the name of another schema (L<Sah::Schema::posint>). We retrieve the
-schema which is C<< ["int", {summary=>"Positive integer (1,2,3,...)", min=>1},
-{}] >>. We now try to resolve C<int> and find that it's a builtin type. So the
-final result is: C<< ["int", [ {req=>1}, {summary=>"Positive integer
-(1,2,3,...)", min=>1} ]] >>.
+First we normalize to C<< ["posint",{req=>1}] >>. The type is C<posint> and it
+is the name of another schema (L<Sah::Schema::posint>). We retrieve the
+C<posint> schema which is C<< ["int", {summary=>"Positive integer (1,2,3,...)",
+min=>1}] >>. We now try to resolve C<int> and find that it's a builtin type. So
+the final result is: C<< ["int", [ {req=>1}, {summary=>"Positive integer
+(1,2,3,...)", min=>1} ], {}] >>.
 
 Known options:
 
@@ -189,7 +189,17 @@ is normalized.
 
 =item * merge_clause_sets => bool (default: 1)
 
-=item * return_intermediates => bool
+=back
+
+Additional data returned (in the third element's hash keys):
+
+=over
+
+=item * intermediates
+
+This is an arrayref of intermediate schema names, from the shallowest to the
+deepest. The first element of this arrayref is the original unresolved schema's
+type, then the second is the base schema of the original schema, and so on.
 
 =back
 
