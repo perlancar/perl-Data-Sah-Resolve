@@ -189,6 +189,11 @@ is normalized.
 
 =item * merge_clause_sets => bool (default: 1)
 
+Whether to merge clause sets when a clause set contains merge keys. This is
+normally set to true as this is the proper behavior specified by the L<Sah>
+specification. However, for some purposes we might not need merging and can skip
+this step to save some time.
+
 =back
 
 Additional data returned (in the third element's hash keys):
