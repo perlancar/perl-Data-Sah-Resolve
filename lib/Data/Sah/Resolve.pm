@@ -218,7 +218,22 @@ this step to save some time.
 =item * min_steps => uint (default: undef)
 
 If specified then a minimum number of resolving steps is performed regardless of
-the C<stop_after_no_merge_keys> setting.
+the C<stop_after_no_merge_keys> setting. For example:
+
+ resolve_schema({stop_after_no_merge_keys=>1}, ["poseven", {min=>10}]);
+
+will result in (0 steps performed, since the clause set does not have merge
+keys):
+
+ ["poseven", [{min=>10}], ...]
+
+but:
+
+ resolve_schema({stop_after_no_merge_keys=>1, min_steps=>1}, ["poseven", {min=>10}]);
+
+will result in (1 step performed):
+
+ ["posint", [{div_by=>2}, {min=>10}], ...]
 
 =item * stop_after_no_merge_keys => bool (default: 0)
 
@@ -228,6 +243,31 @@ steps are performed until there are no merge keys found.
 
 This option can be used, e.g. in validator generator, to convert the base
 schema as a function that can be called for base type check.
+
+Example:
+
+ resolve_schema(["posint", {min=>10}]);
+
+will result in:
+
+ ["int", [{min=>1}, {min=>10}]]
+
+but this:
+
+ resolve_schema({stop_after_no_merge_keys=>1}, ["posint", {min=>10}]);
+
+will result in this (0 steps performed, since the clause set C<< {min=>10} >>
+does not have merge keys):
+
+ ["posint", [{min=>10}]]
+
+However:
+
+ resolve_schema({stop_after_no_merge_keys=>1}, ["posint", {"merge.normal.max"=>100}]);
+
+will result in this (1 resolve step, 1 merging):
+
+ ["int", [{min=>1, max=>100}]]
 
 =back
 
