@@ -13,32 +13,34 @@ use Exporter qw(import);
 our @EXPORT_OK = qw(resolve_schema);
 
 sub _resolve {
-    my ($opts, $type, $clsets, $seen) = @_;
+    my ($opts, $type, $res) = @_;
 
-    die "Recursive schema definition: ".join(" -> ", @$seen, $type)
-        if grep { $type eq $_ } @$seen;
-    push @$seen, $type;
+    die "Cannot resolve Sah schema: recursive schema definition: ".
+        join(" -> ", @{$res->[2]{intermediates}}, $type)
+        if grep { $type eq $_ } @{$res->[2]{intermediates}};
+    push @{$res->[2]{intermediates}}, $type;
 
     (my $typemod_pm = "Data/Sah/Type/$type.pm") =~ s!::!/!g;
     eval { require $typemod_pm; 1 };
     my $err = $@;
     # already a builtin-type, so just return the schema's type name & clause set
-    return [$type, $clsets] unless $err;
-    die "Can't check whether $type is a builtin Sah type: $err"
+    return unless $err;
+    die "Cannot resolve Sah schema: can't check whether $type is a builtin Sah type: $err"
         unless $err =~ /\ACan't locate/;
 
     # not a type, try a schema under Sah::Schema
     my $schmod = "Sah::Schema::$type";
     (my $schmod_pm = "$schmod.pm") =~ s!::!/!g;
     eval { require $schmod_pm; 1 };
-    die "Not a known built-in Sah type '$type' (can't locate ".
+    die "Cannot resolve Sah schema: not a known built-in Sah type '$type' (can't locate ".
         "Data::Sah::Type::$type) and not a known schema name '$type' ($@)"
             if $@;
     no strict 'refs';
     my $sch2 = ${"$schmod\::schema"};
     die "BUG: Schema module $schmod doesn't contain \$schema" unless $sch2;
-    unshift @$clsets, $sch2->[1];
-    _resolve($opts, $sch2->[0], $clsets, $seen);
+    $res->[0] = $sch2->[0];
+    unshift @{ $res->[1] }, $sch2->[1];
+    _resolve($opts, $sch2->[0], $res);
 }
 
 sub resolve_schema {
@@ -51,8 +53,8 @@ sub resolve_schema {
     }
     $opts->{merge_clause_sets} //= 1;
 
-    my $seen = [];
-    my $res = _resolve($opts, $sch->[0], keys(%{$sch->[1]}) ? [$sch->[1]] : [], $seen);
+    my $res = [$sch->[0], keys(%{$sch->[1]}) ? [$sch->[1]] : [], {}];
+    _resolve($opts, $sch->[0], $res);
 
   MERGE:
     {
@@ -100,8 +102,6 @@ sub resolve_schema {
 
         $res->[1] = \@clsets;
     }
-
-    $res->[2]{intermediates} = $seen;
 
     $res;
 }
