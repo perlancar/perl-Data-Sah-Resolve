@@ -1,3 +1,15 @@
+0.009   2021-07-27  Released-By: PERLANCAR; Urgency: medium; Backward-Incompatible: yes
+
+	[INCOMPATIBLE CHANGES]
+
+        - Make third element of return value a hash so it can contain additional
+	  stuffs in the future; the intermediates is now in the 'intermediates'
+	  key of this hash.
+
+        - [removed] Remove option 'return_intermediates' (we now always return
+	  intermediates.
+
+
 0.008   2021-02-27  Released-By: PERLANCAR; Urgency: medium
 
 	- [test] Re-pass tests by using Test::Deep to ignore schema's
