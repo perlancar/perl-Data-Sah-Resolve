@@ -27,24 +27,10 @@ sub _resolve {
     my $err = $@;
     unless ($err) {
         # already a builtin-type, so we stop here
-        $res->[2]{base_schema_is_type} = 1;
         return;
     }
     die "Cannot resolve Sah schema: can't check whether $type is a builtin Sah type: $err"
         unless $err =~ /\ACan't locate/;
-
-    if ($opts->{stop_after_no_merge_keys} &&
-            (!defined($opts->{min_steps}) || @{$res->[2]{intermediates}} > $opts->{min_steps})) {
-        my $has_merge_mode_keys;
-        my $clset = $res->[1][-1];
-        for (keys %$clset) {
-            if (/\Amerge\./) {
-                $has_merge_mode_keys = 1;
-                last;
-            }
-        }
-        return unless $has_merge_mode_keys;
-    }
 
     # not a type, try a schema under Sah::Schema
     my $schmod = "Sah::Schema::$type";
@@ -74,7 +60,6 @@ sub resolve_schema {
 
     my $res = [$sch->[0], keys(%{$sch->[1]}) ? [$sch->[1]] : [], {
         intermediates => [],
-        base_schema_is_type => 0,
     }];
     _resolve($opts, $sch->[0], $res);
 
@@ -216,72 +201,11 @@ normally set to true as this is the proper behavior specified by the L<Sah>
 specification. However, for some purposes we might not need merging and can skip
 this step to save some time.
 
-=item * min_steps => uint (default: undef)
-
-If specified then a minimum number of resolving steps is performed regardless of
-the C<stop_after_no_merge_keys> setting. For example:
-
- resolve_schema({stop_after_no_merge_keys=>1}, ["poseven", {min=>10}]);
-
-will result in (0 steps performed, since the clause set does not have merge
-keys):
-
- ["poseven", [{min=>10}], ...]
-
-but:
-
- resolve_schema({stop_after_no_merge_keys=>1, min_steps=>1}, ["poseven", {min=>10}]);
-
-will result in (1 step performed):
-
- ["posint", [{div_by=>2}, {min=>10}], ...]
-
-=item * stop_after_no_merge_keys => bool (default: 0)
-
-This is a special option to instruct the resolver to stop immediately after a
-step and there is no merge keys found. When there are merge keys, additional
-steps are performed until there are no merge keys found.
-
-This option can be used, e.g. in validator generator, to convert the base
-schema as a function that can be called for base type check.
-
-Example:
-
- resolve_schema(["posint", {min=>10}]);
-
-will result in:
-
- ["int", [{min=>1}, {min=>10}]]
-
-but this:
-
- resolve_schema({stop_after_no_merge_keys=>1}, ["posint", {min=>10}]);
-
-will result in this (0 steps performed, since the clause set C<< {min=>10} >>
-does not have merge keys):
-
- ["posint", [{min=>10}]]
-
-However:
-
- resolve_schema({stop_after_no_merge_keys=>1}, ["posint", {"merge.normal.max"=>100}]);
-
-will result in this (1 resolve step, 1 merging):
-
- ["int", [{min=>1, max=>100}]]
-
 =back
 
 Additional data returned (in the third element's hash keys):
 
 =over
-
-=item * base_schema_is_type
-
-Bool. Will be set to 1 if the base schema of the resolve result is a built-in
-type, which is the normal condition because resolving will only stop after the
-built-in type is reached. When C<stop_after_no_merge_keys> option is set to
-true, this might be set to false.
 
 =item * intermediates
 
