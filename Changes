@@ -1,3 +1,10 @@
+0.011   2021-07-29  Released-By: PERLANCAR; Urgency: low
+
+        - No functional changes.
+
+	- [dist] Edit Changes entry for 0.010 for more explanation.
+
+
 0.010   2021-07-29  Released-By: PERLANCAR; Urgency: medium; Backward-Incompatible: yes
 
         - [incompatible change] Make result into a hash that contains all the
