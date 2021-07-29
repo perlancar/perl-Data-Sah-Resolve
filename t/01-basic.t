@@ -42,19 +42,31 @@ subtest "tests that need Data-Sah distribution" => sub {
 
     test_resolve(
         schema => "int",
-        result => ["int", [], {intermediates=>["int"]}],
+        result => ["int", [], {intermediates=>["int"],
+                               intermediates_have_merge=>[undef],
+                               clset_has_merge=>0,
+                           }],
     );
     test_resolve(
-        schema => ["int"],
-        result => ["int", [], {intermediates=>["int"]}],
+        schema => "int",
+        result => ["int", [], {intermediates=>["int"],
+                               intermediates_have_merge=>[undef],
+                               clset_has_merge=>0,
+                           }],
     );
     test_resolve(
         schema => ["int", {}],
-        result => ["int", [], {intermediates=>["int"]}],
+        result => ["int", [], {intermediates=>["int"],
+                               intermediates_have_merge=>[undef],
+                               clset_has_merge=>0,
+                           }],
     );
     test_resolve(
         schema => ["int", min=>2],
-        result => ["int", [{min=>2}], {intermediates=>["int"]}],
+        result => ["int", [{min=>2}], {intermediates=>["int"],
+                                       intermediates_have_merge=>[undef],
+                                       clset_has_merge=>0,
+                                   }],
     );
 
     subtest "tests that need Sah-Schemas-Int" => sub {
@@ -62,24 +74,39 @@ subtest "tests that need Data-Sah distribution" => sub {
 
         test_resolve(
             schema => "posint",
-            result => ["int", [superhashof({min=>1})], {intermediates=>["posint", "int"]}],
+            result => ["int", [superhashof({min=>1})], {intermediates=>["int", "posint"],
+                                                        intermediates_have_merge=>[undef,0],
+                                                        clset_has_merge=>0,
+                                                    }],
         );
         test_resolve(
             schema => ["posint", min=>10],
-            result => ["int", [superhashof({min=>1}), {min=>10}], {intermediates=>["posint","int"]}],
+            result => ["int", [superhashof({min=>1}), {min=>10}], {intermediates=>["int","posint"],
+                                                                   intermediates_have_merge=>[undef,0],
+                                                                   clset_has_merge=>0,
+                                                               }],
         );
         test_resolve(
             schema => ["posint", "merge.delete.min"=>undef],
-            result => ["int", [superhashof({})], {intermediates=>["posint","int"]}],
+            result => ["int", [superhashof({})], {intermediates=>["int","posint"],
+                                                  intermediates_have_merge=>[undef,0],
+                                                  clset_has_merge=>1,
+                                              }],
         );
 
         test_resolve(
             schema => ["poseven"],
-            result => ["int", [superhashof({ min=>1}), superhashof({div_by=>2})], {intermediates=>["poseven","posint","int"]}],
+            result => ["int", [superhashof({ min=>1}), superhashof({div_by=>2})], {intermediates=>["int","posint","poseven"],
+                                                                                   intermediates_have_merge=>[undef,0,0],
+                                                                                   clset_has_merge=>0,
+                                                                               }],
         );
         test_resolve(
             schema => ["poseven", min=>10, div_by=>3],
-            result => ["int", [superhashof({min=>1}), superhashof({div_by=>2}), superhashof({min=>10, div_by=>3})], {intermediates=>["poseven","posint","int"]}],
+            result => ["int", [superhashof({min=>1}), superhashof({div_by=>2}), superhashof({min=>10, div_by=>3})], {intermediates=>["int","posint","poseven"],
+                                                                                                                     intermediates_have_merge=>[undef,0,0],
+                                                                                                                     clset_has_merge=>0,
+                                                                                                                 }],
         );
 
         subtest "tests that need Sah-Schemas-Examples" => sub {
@@ -87,7 +114,10 @@ subtest "tests that need Data-Sah distribution" => sub {
             test_resolve(
                 name   => "2 merges",
                 schema => ["example::has_merge", {"merge.normal.div_by"=>3}],
-                result => ["int", [superhashof({div_by=>3})], {intermediates=>["example::has_merge","posint","int"]}],
+                result => ["int", [superhashof({div_by=>3})], {intermediates=>["int","posint","example::has_merge"],
+                                                               intermediates_have_merge=>[undef,0,1],
+                                                               clset_has_merge=>1,
+                                                           }],
             );
         };
     };

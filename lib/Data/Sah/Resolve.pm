@@ -12,6 +12,14 @@ use warnings;
 use Exporter qw(import);
 our @EXPORT_OK = qw(resolve_schema);
 
+sub _clset_has_merge {
+    my $clset = shift;
+    for (keys %$clset) {
+        return 1 if /\Amerge\./;
+    }
+    0;
+}
+
 sub _resolve {
     my ($opts, $type, $res) = @_;
 
@@ -19,7 +27,8 @@ sub _resolve {
         join(" -> ", @{$res->[2]{intermediates}}, $type)
         if grep { $type eq $_ } @{$res->[2]{intermediates}};
 
-    push @{$res->[2]{intermediates}}, $type;
+    unshift @{$res->[2]{intermediates}}           , $type;
+    unshift @{$res->[2]{intermediates_have_merge}}, undef; # temporary value
 
     # check whether $type is a built-in Sah type
     (my $typemod_pm = "Data/Sah/Type/$type.pm") =~ s!::!/!g;
@@ -45,6 +54,7 @@ sub _resolve {
         unless $sch2;
     $res->[0] = $sch2->[0];
     unshift @{ $res->[1] }, $sch2->[1];
+    $res->[2]{intermediates_have_merge}[0] = _clset_has_merge($sch2->[1]);
     _resolve($opts, $sch2->[0], $res);
 }
 
@@ -59,7 +69,9 @@ sub resolve_schema {
     $opts->{merge_clause_sets} //= 1;
 
     my $res = [$sch->[0], keys(%{$sch->[1]}) ? [$sch->[1]] : [], {
-        intermediates => [],
+        intermediates            => [],
+        intermediates_have_merge => [],
+        clset_has_merge          => _clset_has_merge($sch->[1]),
     }];
     _resolve($opts, $sch->[0], $res);
 
@@ -70,14 +82,7 @@ sub resolve_schema {
 
         my @clsets = (shift @{ $res->[1] });
         for my $clset (@{ $res->[1] }) {
-            my $has_merge_mode_keys;
-            for (keys %$clset) {
-                if (/\Amerge\./) {
-                    $has_merge_mode_keys = 1;
-                    last;
-                }
-            }
-            if ($has_merge_mode_keys) {
+            if (_clset_has_merge($clset)) {
                 state $merger = do {
                     require Data::ModeMerge;
                     my $mm = Data::ModeMerge->new(config => {
@@ -209,9 +214,46 @@ Additional data returned (in the third element's hash keys):
 
 =item * intermediates
 
-Array. This is a list of intermediate schema names, from the shallowest to the
-deepest. The first element of this arrayref is the original unresolved schema's
-type, then the second is the base schema of the original schema, and so on.
+Array. This is a list of intermediate schema names, from the deepest to the
+shallowest. The first element of this arrayref is the builtin Sah type and the
+last element is the original unresolved schema's type.
+
+See also: L</intermediates_have_merge>
+
+=item * clset_has_merge
+
+Bool. Tells whether the clause set of the being-resolved schema contains merge
+prefixes.
+
+=item * intermediates_have_merge
+
+Array. This is a list to accompany the L</intermediates> key. Each element of
+this list tells whether any of clause set of the schema in the corresponding
+element in C<intermediates> contains merge prefixes. The builtin type will have
+C<undef> value. For example, suppose schema C<sch1> is:
+
+ ["sch2", {"merge.normal.min_len"=>10}]
+
+and schema C<sch2> is:
+
+ ["sch3", {min_len=>5, match=>qr/foo/, max_len=>32}]
+
+and schema C<sch3> is:
+
+ ["str"]
+
+then resolving C<< ["sch1", {match=>qr/bar/}] >> will result in this:
+
+ ["str",
+  [
+    {},
+    {min_len=>10, match=>qr/foo/, max_len=>32},
+  ],
+  {
+    intermediates            => ["str", "sch3", "sch2", "sch1"],
+    intermediates_have_merge => [undef, 0     , 0     , 1     ],
+    clset_has_merge          => 1,
+  }]
 
 =back
 
