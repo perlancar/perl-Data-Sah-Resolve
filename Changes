@@ -1,3 +1,11 @@
+0.010   2021-07-29  Released-By: PERLANCAR; Urgency: medium; Backward-Incompatible: yes
+
+        - [incompatible change] Make result into a hash that contains all the
+          info we need.
+
+        - Add option: allow_base_with_no_additional_clauses.
+
+
 0.009   2021-07-27  Released-By: PERLANCAR; Urgency: medium; Backward-Incompatible: yes
 
 	[INCOMPATIBLE CHANGES]

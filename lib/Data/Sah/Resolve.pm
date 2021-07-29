@@ -336,7 +336,7 @@ not contain any merge prefixes. Because if additional clause sets contained
 merge prefixes, they could modify or remove restrictions set by the base instead
 of just adding more restrictions (which is the whole point of merging).
 
-=item clsets_after_base
+=item * clsets_after_base
 
 Clause sets after the "base restriction" base. This is additional restrictions
 that are imposed to the restrictions of the base schema. They do not contain
