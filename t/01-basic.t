@@ -99,6 +99,20 @@ subtest "tests that need Data-Sah distribution" => sub {
                 type=>"int",
                 clsets_after_type => [superhashof({min=>1}),{}],
                 "clsets_after_type.alt.merge.merged" => [superhashof({min=>1})],
+                base=>"int",
+                clsets_after_base => [superhashof({min=>1})],
+                resolve_path => ["int","posint"],
+            },
+        );
+        test_resolve(
+            name => "posint opt:allow_base_with_no_additional_clauses=1",
+            schema => "posint",
+            opts => {allow_base_with_no_additional_clauses=>1},
+            result => {
+                v => 2,
+                type=>"int",
+                clsets_after_type => [superhashof({min=>1}),{}],
+                "clsets_after_type.alt.merge.merged" => [superhashof({min=>1})],
                 base=>"posint",
                 clsets_after_base => [],
                 resolve_path => ["int","posint"],
@@ -130,7 +144,9 @@ subtest "tests that need Data-Sah distribution" => sub {
         );
 
         test_resolve(
+            name => "poseven opt:allow_base_with_no_additional_clauses=1",
             schema => ["poseven"],
+            opts => {allow_base_with_no_additional_clauses=>1},
             result => {
                 v => 2,
                 type=>"int",

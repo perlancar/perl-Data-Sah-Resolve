@@ -87,7 +87,11 @@ sub resolve_schema {
     # TODO: sanity check: the innermost base schema should not have merge prefixes
     my $idx = $#clsets_have_merge;
     while ($idx >= 0) {
-        last unless $clsets_have_merge[$idx];
+        if ($opts->{allow_base_with_no_additional_clauses}) {
+            last if !$clsets_have_merge[$idx];
+        } else {
+            last if keys(%{$res->{clsets_after_type}[$idx]}) > 0 && !$clsets_have_merge[$idx];
+        }
         $idx--;
     }
     #use DD; dd $res->{clsets_after_type}; dd \@clsets_have_merge;
@@ -287,6 +291,15 @@ Known options:
 
 Bool, default false. When set to true, function will skip normalizing schema and
 assume input schema is normalized.
+
+=item * allow_base_with_no_additional_clauses
+
+Bool, default false. Normally, a schema like C<< "posint" >> or C<<
+["posint",{}] >> will result in C<"int"> as the base (because the schema does
+not add any additional clauses to the "posint" schema) while C<<
+["posint",{div_by=>2}] >> will result in C<"posint"> as the base. But if this
+setting is set to true, then all the previous examples will result in
+C<"posint"> as the base.
 
 =back
 
