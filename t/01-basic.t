@@ -42,31 +42,51 @@ subtest "tests that need Data-Sah distribution" => sub {
 
     test_resolve(
         schema => "int",
-        result => ["int", [], {intermediates=>["int"],
-                               intermediates_have_merge=>[undef],
-                               clset_has_merge=>0,
-                           }],
+        result => {
+            v => 2,
+            type=>"int",
+            clsets_after_type => [{}],
+            "clsets_after_type.alt.merge.merged" => [],
+            base=>"int",
+            clsets_after_base => [],
+            resolve_path => ["int"],
+        },
     );
     test_resolve(
-        schema => "int",
-        result => ["int", [], {intermediates=>["int"],
-                               intermediates_have_merge=>[undef],
-                               clset_has_merge=>0,
-                           }],
+        schema => ["int"],
+        result => {
+            v => 2,
+            type=>"int",
+            clsets_after_type => [{}],
+            "clsets_after_type.alt.merge.merged" => [],
+            base=>"int",
+            clsets_after_base => [],
+            resolve_path => ["int"],
+        },
     );
     test_resolve(
         schema => ["int", {}],
-        result => ["int", [], {intermediates=>["int"],
-                               intermediates_have_merge=>[undef],
-                               clset_has_merge=>0,
-                           }],
+        result => {
+            v => 2,
+            type=>"int",
+            clsets_after_type => [{}],
+            "clsets_after_type.alt.merge.merged" => [],
+            base=>"int",
+            clsets_after_base => [],
+            resolve_path => ["int"],
+        },
     );
     test_resolve(
         schema => ["int", min=>2],
-        result => ["int", [{min=>2}], {intermediates=>["int"],
-                                       intermediates_have_merge=>[undef],
-                                       clset_has_merge=>0,
-                                   }],
+        result => {
+            v => 2,
+            type=>"int",
+            clsets_after_type => [{min=>2}],
+            "clsets_after_type.alt.merge.merged" => [{min=>2}],
+            base=>"int",
+            clsets_after_base => [{min=>2}],
+            resolve_path => ["int"],
+        },
     );
 
     subtest "tests that need Sah-Schemas-Int" => sub {
@@ -74,39 +94,64 @@ subtest "tests that need Data-Sah distribution" => sub {
 
         test_resolve(
             schema => "posint",
-            result => ["int", [superhashof({min=>1})], {intermediates=>["int", "posint"],
-                                                        intermediates_have_merge=>[undef,0],
-                                                        clset_has_merge=>0,
-                                                    }],
+            result => {
+                v => 2,
+                type=>"int",
+                clsets_after_type => [superhashof({min=>1}),{}],
+                "clsets_after_type.alt.merge.merged" => [superhashof({min=>1})],
+                base=>"posint",
+                clsets_after_base => [],
+                resolve_path => ["int","posint"],
+            },
         );
         test_resolve(
             schema => ["posint", min=>10],
-            result => ["int", [superhashof({min=>1}), {min=>10}], {intermediates=>["int","posint"],
-                                                                   intermediates_have_merge=>[undef,0],
-                                                                   clset_has_merge=>0,
-                                                               }],
+            result => {
+                v => 2,
+                type=>"int",
+                clsets_after_type => [superhashof({min=>1}),{min=>10}],
+                "clsets_after_type.alt.merge.merged" => [superhashof({min=>1}), {min=>10}],
+                base=>"posint",
+                clsets_after_base => [{min=>10}],
+                resolve_path => ["int","posint"],
+            },
         );
         test_resolve(
             schema => ["posint", "merge.delete.min"=>undef],
-            result => ["int", [superhashof({})], {intermediates=>["int","posint"],
-                                                  intermediates_have_merge=>[undef,0],
-                                                  clset_has_merge=>1,
-                                              }],
+            result => {
+                v => 2,
+                type=>"int",
+                clsets_after_type => [superhashof({min=>1}),{"merge.delete.min"=>undef}],
+                "clsets_after_type.alt.merge.merged" => [superhashof({})],
+                base=>"int",
+                clsets_after_base => [superhashof({min=>1}),{"merge.delete.min"=>undef}],
+                resolve_path => ["int","posint"],
+            },
         );
 
         test_resolve(
             schema => ["poseven"],
-            result => ["int", [superhashof({ min=>1}), superhashof({div_by=>2})], {intermediates=>["int","posint","poseven"],
-                                                                                   intermediates_have_merge=>[undef,0,0],
-                                                                                   clset_has_merge=>0,
-                                                                               }],
+            result => {
+                v => 2,
+                type=>"int",
+                clsets_after_type => [superhashof({min=>1}),superhashof({div_by=>2}),{}],
+                "clsets_after_type.alt.merge.merged" => [superhashof({min=>1}),superhashof({div_by=>2})],
+                base=>"poseven",
+                clsets_after_base => [],
+                resolve_path => ["int","posint","poseven"],
+            },
         );
         test_resolve(
             schema => ["poseven", min=>10, div_by=>3],
-            result => ["int", [superhashof({min=>1}), superhashof({div_by=>2}), superhashof({min=>10, div_by=>3})], {intermediates=>["int","posint","poseven"],
-                                                                                                                     intermediates_have_merge=>[undef,0,0],
-                                                                                                                     clset_has_merge=>0,
-                                                                                                                 }],
+            result => {
+                v => 2,
+                type=>"int",
+                clsets_after_type => [superhashof({min=>1}),superhashof({div_by=>2}),{min=>10,div_by=>3}],
+                "clsets_after_type.alt.merge.merged" => [superhashof({min=>1}),superhashof({div_by=>2}),{min=>10,div_by=>3}],
+                base=>"poseven",
+                clsets_after_base => [{min=>10,div_by=>3}],
+                resolve_path => ["int","posint","poseven"],
+            },
         );
 
         subtest "tests that need Sah-Schemas-Examples" => sub {
@@ -114,10 +159,15 @@ subtest "tests that need Data-Sah distribution" => sub {
             test_resolve(
                 name   => "2 merges",
                 schema => ["example::has_merge", {"merge.normal.div_by"=>3}],
-                result => ["int", [superhashof({div_by=>3})], {intermediates=>["int","posint","example::has_merge"],
-                                                               intermediates_have_merge=>[undef,0,1],
-                                                               clset_has_merge=>1,
-                                                           }],
+                result => {
+                    v => 2,
+                    type=>"int",
+                    clsets_after_type => [superhashof({min=>1}),superhashof({div_by=>2}),{"merge.normal.div_by"=>3}],
+                    "clsets_after_type.alt.merge.merged" => [superhashof({div_by=>3})],
+                    base=>"int",
+                    clsets_after_base => [superhashof({min=>1}),superhashof({div_by=>2}),{"merge.normal.div_by"=>3}],
+                    resolve_path => ["int","posint","example::has_merge"],
+                },
             );
         };
     };
