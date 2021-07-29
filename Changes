@@ -7,10 +7,12 @@
 
 0.010   2021-07-29  Released-By: PERLANCAR; Urgency: medium; Backward-Incompatible: yes
 
-        - [incompatible change] Make result into a hash that contains all the
-          info we need. Continuing with 0.009, this change also allows the
-          result of resolve_schema() to be usable for future/varied needs, e.g.
-          support for validator caching in upcoming Data-Sah.
+        [INCOMPATIBLE CHANGES]
+
+        - Make result into a hash that contains all the info we need. Continuing
+          after 0.009, this change also allows the result of resolve_schema() to
+          be usable and clearer for future/varied needs, e.g. support for
+          validator caching in upcoming Data-Sah.
 
         - Add option: allow_base_with_no_additional_clauses.
 
